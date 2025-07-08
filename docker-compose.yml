@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  windmill:
+    image: ghcr.io/windmill-labs/windmill:main
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgres://windmill:windmill@postgres:5432/windmill
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: windmill
+      POSTGRES_PASSWORD: windmill
+      POSTGRES_DB: windmill
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+volumes:
+  postgres_data:
+  qdrant_data:

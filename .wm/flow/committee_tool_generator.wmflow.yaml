@@ -1,0 +1,34 @@
+description: Run a committee of LLMs to generate and install a new Windmill workflow
+inputs:
+  - name: prompt
+    type: string
+steps:
+  - name: call_claude
+    script: call_claude.py
+    args:
+      prompt: ${inputs.prompt}
+  - name: call_gpt4
+    script: call_gpt4.py
+    args:
+      prompt: ${inputs.prompt}
+  - name: call_gemini
+    script: call_gemini.py
+    args:
+      prompt: ${inputs.prompt}
+  - name: vote
+    script: vote_best_response.py
+    args:
+      claude: ${steps.call_claude.output}
+      gpt4: ${steps.call_gpt4.output}
+      gemini: ${steps.call_gemini.output}
+  - name: install
+    script: install_workflow.py
+    args:
+      best_response: ${steps.vote.output}
+  - name: log
+    script: log_debate.py
+    args:
+      claude: ${steps.call_claude.output}
+      gpt4: ${steps.call_gpt4.output}
+      gemini: ${steps.call_gemini.output}
+      decision: ${steps.vote.output}
