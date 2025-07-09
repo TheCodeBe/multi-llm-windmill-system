@@ -1,0 +1,83 @@
+name: llm-agent-committee
+region: nyc
+
+services:
+  # AutoGen Studio - Committee UI & Agent Orchestration
+  - name: autogen-studio
+    source_dir: /autogen-ui
+    build_command: pip install -r requirements.txt
+    run_command: autogenstudio ui --host=0.0.0.0 --port=8080
+    instance_size_slug: apps-s-1vcpu-2gb
+    instance_count: 1
+    http_port: 8080
+    routes:
+      - path: /
+    envs:
+      - key: OPENAI_API_KEY
+        type: SECRET
+        scope: RUN_TIME
+      - key: ANTHROPIC_API_KEY
+        type: SECRET
+        scope: RUN_TIME
+      - key: GOOGLE_API_KEY
+        type: SECRET
+        scope: RUN_TIME
+      - key: WINDMILL_BASE_URL
+        value: http://windmill:8000
+        scope: RUN_TIME
+      - key: WINDMILL_TOKEN
+        type: SECRET
+        scope: RUN_TIME
+
+  # Windmill - Workflow Engine & Tool Factory
+  - name: windmill
+    image:
+      registry_type: GHCR
+      repository: windmill-labs/windmill
+      tag: main
+    instance_size_slug: apps-s-1vcpu-2gb
+    instance_count: 1
+    http_port: 8000
+    routes:
+      - path: /windmill
+    envs:
+      - key: DATABASE_URL
+        value: ${windmill-db.DATABASE_URL}
+        scope: RUN_TIME
+      - key: REDIS_URL
+        value: redis://redis:6379
+        scope: RUN_TIME
+      - key: MODE
+        value: standalone
+        scope: RUN_TIME
+      - key: WM_BASE_URL
+        value: https://llm-agent-committee.ondigitalocean.app
+        scope: RUN_TIME
+      - key: OPENAI_API_KEY
+        type: SECRET
+        scope: RUN_TIME
+      - key: ANTHROPIC_API_KEY
+        type: SECRET
+        scope: RUN_TIME
+      - key: GOOGLE_API_KEY
+        type: SECRET
+        scope: RUN_TIME
+
+  # Redis - Cache & Message Queue
+  - name: redis
+    image:
+      registry_type: DOCKER_HUB
+      repository: redis
+      tag: alpine
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    instance_count: 1
+
+# Managed Postgres Database
+databases:
+  - name: windmill-db
+    engine: PG
+    version: "14"
+    num_nodes: 1
+    size: db-s-1vcpu-1gb
+
+# Connect to existing Qdrant: qdrant-vector.ondigitalocean.app:6333

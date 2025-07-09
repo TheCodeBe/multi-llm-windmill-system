@@ -1,28 +1,64 @@
 version: "3.9"
 services:
+  # AutoGen Studio - Committee Interface
+  autogen-studio:
+    build: 
+      context: ./autogen-ui
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - WINDMILL_BASE_URL=http://windmill:8000
+      - WINDMILL_TOKEN=${WINDMILL_TOKEN}
+    depends_on:
+      - windmill
+    volumes:
+      - autogen_data:/app/data
+
+  # Windmill - Workflow Engine
   windmill:
     image: ghcr.io/windmill-labs/windmill:main
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgres://windmill:windmill@postgres:5432/windmill
-      REDIS_URL: redis://redis:6379
+      - DATABASE_URL=postgres://windmill:windmill@postgres:5432/windmill
+      - REDIS_URL=redis://redis:6379
+      - MODE=standalone
+      - WM_BASE_URL=http://localhost:8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     depends_on:
       - postgres
       - redis
+    volumes:
+      - ./.wm:/tmp/.wm
+      - windmill_data:/tmp/windmill
 
+  # PostgreSQL - Main Database
   postgres:
     image: postgres:14
     environment:
-      POSTGRES_USER: windmill
-      POSTGRES_PASSWORD: windmill
-      POSTGRES_DB: windmill
+      - POSTGRES_USER=windmill
+      - POSTGRES_PASSWORD=windmill
+      - POSTGRES_DB=windmill
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # Redis - Cache & Message Queue
   redis:
     image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
+  # Qdrant - Vector Database
   qdrant:
     image: qdrant/qdrant
     ports:
@@ -31,5 +67,8 @@ services:
       - qdrant_data:/qdrant/storage
 
 volumes:
+  autogen_data:
+  windmill_data:
   postgres_data:
+  redis_data:
   qdrant_data:

@@ -1,0 +1,23 @@
+# AutoGen Studio & Dependencies
+autogenstudio>=0.4.0
+autogen-agentchat>=0.4.0
+autogen-ext[openai,anthropic]>=0.4.0
+
+# LLM Providers
+openai>=1.0.0
+anthropic>=0.25.0
+google-generativeai>=0.5.0
+
+# Windmill Integration
+httpx>=0.27.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Database & Persistence
+sqlite3
+pandas>=2.0.0
+
+# Web Framework
+fastapi>=0.100.0
+uvicorn>=0.23.0
+websockets>=11.0.0
