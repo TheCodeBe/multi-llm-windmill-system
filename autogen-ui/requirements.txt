@@ -14,7 +14,6 @@ requests>=2.31.0
 python-dotenv>=1.0.0
 
 # Database & Persistence
-sqlite3
 pandas>=2.0.0
 
 # Web Framework
